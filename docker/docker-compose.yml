@@ -1,0 +1,68 @@
+version: '3.11'
+
+services:
+    flask:
+        build:
+            context: ./flask
+            dockerfile: Dockerfile
+        environment:
+            DB_HOST: postgres
+            DB_NAME: mydb
+            DB_USER_FILE: /run/secrets/db_user
+            DB_PASSWORD_FILE: /run/secrets/db_password
+        secrets:
+            - db_user
+            - db_password
+        networks:
+            - backend
+        depends_on:
+            - postgres
+        labels:
+            com.example.service: 'flask'
+
+    postgres:
+        image: postgres:15-alpine
+        environment:
+            POSTGRES_DB: mydb
+            POSTGRES_USER_FILE: /run/secrets/db_user
+            POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+        secrets:
+            - db_user
+            - db_password
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+            - ./db-init/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+        networks:
+            - backend
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U postgres']
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        labels:
+            com.example.service: 'postgres'
+
+    nginx:
+        image: nginx:alpine
+        ports:
+            - '80:80'
+        volumes:
+            - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+        networks:
+            - backend
+        depends_on:
+            - flask
+        labels:
+            com.example.service: 'nginx'
+
+secrets:
+    db_user:
+        file: ./secrets/db_user.txt
+    db_password:
+        file: ./secrets/db_password.txt
+
+networks:
+    backend:
+
+volumes:
+    postgres_data:

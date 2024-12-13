@@ -10,9 +10,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     APP_ENV=${APP_ENV}
 
 # Labels
-LABEL maintainer="votre_nom <votre_email>" \
-      version="1.0" \
-      description="Image Flask optimisée"
+LABEL maintainer="votre_nom <josue.dev@outlook.fr>" \
+    version="1.0" \
+    description="Image Flask optimisée"
 
 WORKDIR /app
 
